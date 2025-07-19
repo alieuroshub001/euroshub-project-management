@@ -1,11 +1,9 @@
-// types/auth.ts
-
 import { Role } from './common';
 
 export interface LoginRequest {
   email: string;
   password?: string;
-  otp?: string;
+  otp?: string; // For 2FA verification
   rememberMe?: boolean;
 }
 
@@ -16,6 +14,7 @@ export interface RegisterRequest {
   role: Exclude<Role, 'super-admin'>;
   department?: string;
   inviteToken?: string;
+  otp?: string; // For signup verification
 }
 
 export interface AuthUser {
@@ -30,6 +29,8 @@ export interface AuthUser {
   permissions?: string[];
   isVerified?: boolean;
   twoFactorEnabled?: boolean;
+  otpEnabled?: boolean;
+  lastOtpSentAt?: Date;
 }
 
 export interface JwtPayload {
@@ -40,16 +41,19 @@ export interface JwtPayload {
   exp: number;
   permissions?: string[];
   sessionId?: string;
+  otpVerified?: boolean; // Indicates if OTP was completed
 }
 
 export interface PasswordResetRequest {
   email: string;
   token: string;
   newPassword: string;
+  otp?: string; // For OTP verification during reset
 }
 
 export interface EmailVerificationRequest {
   token: string;
+  otp?: string; // For OTP verification
 }
 
 export interface TokenPair {
@@ -65,6 +69,7 @@ export interface Session {
   ipAddress?: string;
   expiresAt: Date;
   createdAt: Date;
+  otpVerified?: boolean; // Session-level OTP verification
 }
 
 export interface OAuthProfile {
@@ -88,4 +93,24 @@ export interface Invitation {
   expiresAt: Date;
   invitedBy: string;
   createdAt: Date;
+}
+
+// NEW OTP-RELATED TYPES
+export interface OTPRequest {
+  email: string;
+  type: 'signup' | 'reset' | '2fa' | 'login';
+  channel?: 'email' | 'sms'; // Delivery channel
+}
+
+export interface OTPVerification {
+  email: string;
+  code: string;
+  type: 'signup' | 'reset' | '2fa' | 'login';
+  token?: string; // For password reset flows
+}
+
+export interface OTPStatus {
+  valid: boolean;
+  remainingAttempts?: number;
+  retryAfter?: number; // Seconds
 }

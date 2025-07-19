@@ -41,6 +41,18 @@ export interface AppSettings {
     twoFactor: boolean;
     loginAttempts: number;
     sessionTimeout: number; // minutes
+  otp: {
+      enabled: boolean;
+      signupRequiresOtp: boolean;
+      resetRequiresOtp: boolean;
+      loginRequiresOtp: boolean;
+      length: number;
+      expiryMinutes: number;
+      maxAttempts: number;
+      allowSms: boolean;
+      allowEmail: boolean;
+      codeType: 'numeric' | 'alphanumeric';
+    };
   };
 }
 
@@ -68,6 +80,12 @@ export interface UserSettings {
     days: number[]; // 0-6 (Sunday-Saturday)
   };
   shortcuts: Record<string, string>;
+
+  security: {
+    otpEnabled: boolean;
+    preferredOtpMethod: 'email' | 'sms';
+    backupCodes?: string[];
+  };
 }
 
 export interface OrganizationSettings {
