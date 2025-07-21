@@ -1,3 +1,4 @@
+// src/lib/email.ts
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
@@ -11,41 +12,51 @@ const transporter = nodemailer.createTransport({
 interface EmailOptions {
   to: string;
   subject: string;
-  text?: string;
-  html?: string;
+  html: string;
 }
 
-export async function sendEmail({ to, subject, text, html }: EmailOptions) {
+export async function sendEmail(options: EmailOptions) {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
-      to,
-      subject,
-      text,
-      html,
+      from: `"DEEMEZ" <${process.env.EMAIL_FROM}>`,
+      ...options,
     };
 
-    return await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
   } catch (error) {
     console.error('Error sending email:', error);
-    throw error;
+    throw new Error('Failed to send email');
   }
 }
 
-// OTP Email Template
-export async function sendOTPEmail(email: string, otp: string) {
-  const subject = 'Your OTP Code';
-  const html = `
+export function generateVerificationEmail(name: string, otp: string): string {
+  return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2563eb;">Your One-Time Password (OTP)</h2>
-      <p>Please use the following OTP to complete your verification:</p>
-      <div style="background: #f3f4f6; padding: 20px; text-align: center; margin: 20px 0;">
-        <h1 style="margin: 0; color: #2563eb; letter-spacing: 5px;">${otp}</h1>
+      <h2 style="color: #2563eb;">Email Verification</h2>
+      <p>Hello ${name},</p>
+      <p>Thank you for registering with us. Please use the following OTP to verify your email address:</p>
+      <div style="background: #f3f4f6; padding: 16px; border-radius: 4px; font-size: 24px; font-weight: bold; text-align: center; margin: 16px 0;">
+        ${otp}
       </div>
-      <p>This OTP is valid for 5 minutes. Do not share this code with anyone.</p>
+      <p>This OTP will expire in 15 minutes.</p>
       <p>If you didn't request this, please ignore this email.</p>
+      <p>Best regards,<br/>DEEMEZ</p>
     </div>
   `;
+}
 
-  return sendEmail({ to: email, subject, html });
+export function generatePasswordResetEmail(name: string, otp: string): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #2563eb;">Password Reset Request</h2>
+      <p>Hello ${name},</p>
+      <p>We received a request to reset your password. Please use the following OTP to proceed:</p>
+      <div style="background: #f3f4f6; padding: 16px; border-radius: 4px; font-size: 24px; font-weight: bold; text-align: center; margin: 16px 0;">
+        ${otp}
+      </div>
+      <p>This OTP will expire in 15 minutes.</p>
+      <p>If you didn't request a password reset, please ignore this email.</p>
+      <p>Best regards,<br/>Your App Team</p>
+    </div>
+  `;
 }

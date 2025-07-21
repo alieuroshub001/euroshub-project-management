@@ -1,5 +1,4 @@
 // src/models/auth/User.model.ts
-
 import { Schema, model, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { Role, Status } from '../../types/common';
@@ -21,6 +20,12 @@ export interface IUser extends Document {
   isVerified?: boolean;
   twoFactorEnabled?: boolean;
   twoFactorSecret?: string;
+  verificationOTP?: string;
+  verificationOTPExpires?: Date;
+  modifiedBy?: string;
+  resetPasswordOTP?: string;
+  resetPasswordOTPExpires?: Date;
+  verificationAttempts?: number;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -30,7 +35,7 @@ const userSchema = new Schema<IUser>(
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // This creates the index automatically
       trim: true,
       lowercase: true,
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Invalid email']
@@ -39,7 +44,9 @@ const userSchema = new Schema<IUser>(
     phone: { 
       type: String, 
       trim: true,
-      match: [/^\+[1-9]\d{1,14}$/, 'Invalid E.164 phone number']
+      match: [/^\+[1-9]\d{1,14}$/, 'Invalid E.164 phone number'],
+      unique: true,    // <--- Keep only this
+      sparse: true     // <--- Allows multiple nulls, only unique when present
     },
     role: {
       type: String,
@@ -61,18 +68,40 @@ const userSchema = new Schema<IUser>(
     otpLockUntil: { type: Date },
     isVerified: { type: Boolean, default: false },
     twoFactorEnabled: { type: Boolean, default: false },
-    twoFactorSecret: { type: String, select: false }
+    twoFactorSecret: { type: String, select: false },
+    verificationOTP: { type: String, select: false },
+    resetPasswordOTP: { type: String, select: false },
+    resetPasswordOTPExpires: { type: Date, select: false },
+    verificationAttempts: { type: Number, default: 0 },
+    verificationOTPExpires: { type: Date, select: false },
+    modifiedBy: { type: String, default: 'System' }
   },
   { 
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toJSON: { 
+      virtuals: true,
+      transform: function(doc, ret) {
+        delete ret.password;
+        delete ret.twoFactorSecret;
+        delete ret.verificationOTP;
+        delete ret.resetPasswordOTP;
+        return ret;
+      }
+    },
+    toObject: { 
+      virtuals: true,
+      transform: function(doc, ret) {
+        delete ret.password;
+        delete ret.twoFactorSecret;
+        delete ret.verificationOTP;
+        delete ret.resetPasswordOTP;
+        return ret;
+      }
+    }
   }
 );
 
-// Indexes
-userSchema.index({ email: 1 }, { unique: true });
-userSchema.index({ phone: 1 }, { sparse: true });
+// Only keep additional indexes you actually need (e.g. for status)
 userSchema.index({ status: 1 });
 
 // Password handling
@@ -83,8 +112,12 @@ userSchema.methods.comparePassword = async function(candidatePassword: string) {
 
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password!, 12);
-  next();
+  try {
+    this.password = await bcrypt.hash(this.password!, 12);
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
 });
 
 export const User = model<IUser>('User', userSchema);

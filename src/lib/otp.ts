@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { generateOTPToken, verifyToken } from './jwt';
-import { sendOTPEmail } from './email';
+import { sendEmail } from './email';
 
 const OTP_EXPIRY_MINUTES = 5;
 const OTP_LENGTH = 6;
@@ -24,8 +24,12 @@ export async function sendAndStoreOTP(
   const token = generateOTPToken(email, type);
   
   // Send OTP via email
-  await sendOTPEmail(email, otp);
-  
+  await sendEmail({
+    to: email,
+    subject: "Your OTP Code",
+    html: `<p>Your OTP code is: <strong>${otp}</strong></p>`
+  });
+
   // In a real app, you would store the OTP hash in database with expiry
   // For demo, we'll just return the token
   return token;

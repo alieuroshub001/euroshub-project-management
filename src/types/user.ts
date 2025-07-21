@@ -1,3 +1,4 @@
+// src/types/user.ts
 import { Role, Status } from './common';
 
 export interface User {
@@ -5,18 +6,22 @@ export interface User {
   name: string;
   email: string;
   password?: string;
-  phone?: string; // For SMS OTP
+  phone?: string;
   role: Role;
   department?: string;
   profilePicture?: string;
   status: Status;
   lastActive?: Date;
-  // OTP Fields
   otpEnabled: boolean;
   lastOtpSentAt?: Date;
   otpAttempts?: number;
   otpLockUntil?: Date;
-  // Timestamps
+  isVerified?: boolean;
+  twoFactorEnabled?: boolean;
+  verificationOTP?: string;
+  verificationOTPExpires?: Date;
+  verificationAttempts?: number;
+  modifiedBy?: string;
   joinedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -24,7 +29,6 @@ export interface User {
 
 export interface UserProfile extends Omit<User, 'password'> {
   timezone?: string;
-  phone?: string;
   bio?: string;
   skills?: string[];
 }
