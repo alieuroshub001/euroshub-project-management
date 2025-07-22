@@ -34,7 +34,7 @@ export default function Home() {
         <h2 className="text-2xl font-bold mb-4">Loading...</h2>
         <p>Please wait while we check your authentication status.</p>
         <button 
-          onClick={() => router.push("/auth/signin")}
+          onClick={() => router.push("/auth/login")}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Go to Login

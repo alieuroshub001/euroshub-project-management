@@ -41,28 +41,54 @@ const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         try {
           await dbConnect();
-          
+
+          // Debug: Log incoming login attempt
+          console.log("\n=== [NEXTAUTH LOGIN ATTEMPT] ===");
+          console.log("Login email:", credentials?.email);
+          console.log("Login password:", credentials?.password);
+
           if (!credentials?.email || !credentials?.password) {
+            console.log("Email or password missing");
             throw new Error("Email and password are required");
           }
 
-        const user = await User.findOne({ email: credentials.email })
-  .select("+password")
-  .lean();
-          
-          if (!user) throw new Error("No user found");
-          if (!user.isVerified) throw new Error("Please verify your email first");
-          if (!user.password) throw new Error("Invalid user data");
-          
-          const isValid = await bcrypt.compare(
-            credentials.password, 
-            user.password
-          );
-          
-          if (!isValid) throw new Error("Invalid credentials");
-          
+          // Always lowercase for consistency
+          const user = await User.findOne({ email: credentials.email.toLowerCase() })
+            .select("+password");
+
+          console.log("User from DB:", user ? user.email : "NOT FOUND");
+
+          if (!user) {
+            console.log("No user found");
+            throw new Error("No user found");
+          }
+          if (!user.isVerified) {
+            console.log("User not verified");
+            throw new Error("Please verify your email first");
+          }
+          if (!user.password) {
+            console.log("No password found in user doc!");
+            throw new Error("Invalid user data");
+          }
+
+          // Print hashed password and input password for troubleshooting
+          console.log("Hashed password from DB:", user.password);
+          console.log("Password (input)      :", credentials.password);
+
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+
+          console.log("Password match result :", isValid);
+
+          if (!isValid) {
+            console.log("Invalid credentials");
+            throw new Error("Invalid credentials");
+          }
+
+          console.log("Login successful for  :", user.email);
+          console.log("=== [END LOGIN ATTEMPT] ===\n");
+
           return {
-            id: user._id.toString(),
+            id: user.id.toString(),
             email: user.email,
             name: user.name
           };
@@ -96,10 +122,10 @@ const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: "/auth/signin",
-    error: "/auth/signin", 
+    signIn: "/auth/login",   // Use your actual login page route
+    error: "/auth/login",    // Same for error page (or customize as needed)
   },
-  debug: true,
+  debug: true, // Set to false in production
 };
 
 const handler = NextAuth(authOptions);

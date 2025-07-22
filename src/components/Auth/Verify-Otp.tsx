@@ -2,16 +2,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface VerifyOtpProps {
-  type?: 'verification' | 'reset'; // verification for signup, reset for password reset
+  email: string;
+  type?: 'verification' | 'reset';
 }
 
-export default function VerifyOtp({ type = 'verification' }: VerifyOtpProps) {
+export default function VerifyOtp({ email, type = 'verification' }: VerifyOtpProps) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -20,14 +20,8 @@ export default function VerifyOtp({ type = 'verification' }: VerifyOtpProps) {
   const [countdown, setCountdown] = useState(30);
   
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const emailFromQuery = searchParams.get('email');
-    if (emailFromQuery) {
-      setEmail(decodeURIComponent(emailFromQuery));
-    }
-  }, [searchParams]);
+ 
 
   useEffect(() => {
     if (countdown > 0 && !canResend) {
@@ -73,7 +67,7 @@ export default function VerifyOtp({ type = 'verification' }: VerifyOtpProps) {
     setSuccess('');
 
     try {
-      const response = await fetch('/api/auth/verify', {
+      const response = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

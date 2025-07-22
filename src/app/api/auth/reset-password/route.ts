@@ -1,4 +1,3 @@
-// src/app/api/auth/reset-password/route.ts
 import dbConnect from "@/lib/db";
 import { User } from "@/models/auth/User.model";
 import bcrypt from "bcryptjs";
@@ -24,7 +23,7 @@ export async function POST(req: Request) {
     }
 
     const user = await User.findOne({
-      email,
+      email: email.toLowerCase(),
       resetPasswordOTPExpires: { $gt: new Date() }
     }).select("+resetPasswordOTP");
 
@@ -44,13 +43,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await User.findByIdAndUpdate(user._id, {
-      password: hashedPassword,
-      isVerified: true, 
-      resetPasswordOTP: undefined,
-      resetPasswordOTPExpires: undefined
-    });
+    // Set new password as plain; let pre-save hook hash it!
+    user.password = newPassword;
+    user.isVerified = true;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpires = undefined;
+    await user.save();
 
     return NextResponse.json(
       { 

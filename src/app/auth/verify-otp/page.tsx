@@ -11,9 +11,13 @@ interface PageProps {
 
 export default function VerifyOtpPage({ searchParams }: PageProps) {
   if (!searchParams.email) {
-    // Redirect or show error if email is missing
     return notFound()
   }
 
-  return <VerifyOtp type={searchParams.type || 'verification'} />
+  return (
+    <VerifyOtp 
+      email={searchParams.email}
+      type={searchParams.type || 'verification'}
+    />
+  )
 }
