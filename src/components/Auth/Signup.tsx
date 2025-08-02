@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, User } from 'lucide-react'
 
 interface SignupFormData {
   fullname: string
@@ -12,7 +12,16 @@ interface SignupFormData {
   password: string
   confirmPassword: string
   phone?: string
+  role: string
 }
+
+const USER_ROLES = [
+  { value: 'team', label: 'Team Member', description: 'Standard team member access' },
+  { value: 'client', label: 'Client', description: 'Client access with limited permissions' },
+  { value: 'hr', label: 'HR', description: 'Management access to oversee projects' },
+  { value: 'admin', label: 'Administrator', description: 'Administrative access to system settings' },
+  // Note: super-admin typically shouldn't be selectable during signup for security
+] as const
 
 export default function Signup() {
   const router = useRouter()
@@ -21,7 +30,8 @@ export default function Signup() {
     email: '',
     password: '',
     confirmPassword: '',
-    phone: ''
+    phone: '',
+    role: '' // No default role - user must select
   })
   const [errors, setErrors] = useState<Partial<SignupFormData & { general: string }>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -62,6 +72,10 @@ export default function Signup() {
       newErrors.phone = 'Please enter a valid phone number'
     }
 
+    if (!formData.role) {
+      newErrors.role = 'Please select a user type'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -79,7 +93,8 @@ export default function Signup() {
       fullname: formData.fullname.trim(),
       email: formData.email.toLowerCase(),
       password: formData.password,
-      phone: formData.phone || undefined
+      phone: formData.phone || undefined,
+      role: formData.role
     })
 
     try {
@@ -92,7 +107,8 @@ export default function Signup() {
           fullname: formData.fullname.trim(),
           email: formData.email.toLowerCase(),
           password: formData.password,
-          phone: formData.phone || undefined
+          phone: formData.phone || undefined,
+          role: formData.role
         }),
       })
 
@@ -117,7 +133,7 @@ export default function Signup() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     
@@ -220,6 +236,41 @@ export default function Signup() {
               />
               {errors.phone && (
                 <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                User Type *
+              </label>
+              <div className="relative mt-1">
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className={`appearance-none relative block w-full px-3 py-2 border ${
+                    errors.role ? 'border-red-300' : 'border-gray-300'
+                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white`}
+                >
+                  <option value="">Select user type</option>
+                  {USER_ROLES.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
+              {errors.role && (
+                <p className="mt-1 text-sm text-red-600">{errors.role}</p>
+              )}
+              {formData.role && (
+                <p className="mt-1 text-xs text-gray-500">
+                  {USER_ROLES.find(r => r.value === formData.role)?.description}
+                </p>
               )}
             </div>
 
