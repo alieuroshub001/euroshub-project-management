@@ -18,7 +18,7 @@ interface EmailOptions {
 export async function sendEmail(options: EmailOptions) {
   try {
     const mailOptions = {
-      from: `"DEEMEZ" <${process.env.EMAIL_FROM}>`,
+      from: `"EurosHub" <${process.env.EMAIL_FROM}>`,
       ...options,
     };
 
@@ -32,7 +32,7 @@ export async function sendEmail(options: EmailOptions) {
 export function generateVerificationEmail(name: string, otp: string): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2563eb;">Email Verification</h2>
+      <h2 style="color: #17b6b2;">Email Verification</h2>
       <p>Hello ${name},</p>
       <p>Thank you for registering with us. Please use the following OTP to verify your email address:</p>
       <div style="background: #f3f4f6; padding: 16px; border-radius: 4px; font-size: 24px; font-weight: bold; text-align: center; margin: 16px 0;">
@@ -40,7 +40,7 @@ export function generateVerificationEmail(name: string, otp: string): string {
       </div>
       <p>This OTP will expire in 15 minutes.</p>
       <p>If you didn't request this, please ignore this email.</p>
-      <p>Best regards,<br/>DEEMEZ</p>
+      <p>Best regards,<br/>EurosHub</p>
     </div>
   `;
 }
@@ -48,7 +48,7 @@ export function generateVerificationEmail(name: string, otp: string): string {
 export function generatePasswordResetEmail(name: string, otp: string): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #2563eb;">Password Reset Request</h2>
+      <h2 style="color: #17b6b2;">Password Reset Request</h2>
       <p>Hello ${name},</p>
       <p>We received a request to reset your password. Please use the following OTP to proceed:</p>
       <div style="background: #f3f4f6; padding: 16px; border-radius: 4px; font-size: 24px; font-weight: bold; text-align: center; margin: 16px 0;">
@@ -56,7 +56,7 @@ export function generatePasswordResetEmail(name: string, otp: string): string {
       </div>
       <p>This OTP will expire in 15 minutes.</p>
       <p>If you didn't request a password reset, please ignore this email.</p>
-      <p>Best regards,<br/>Your App Team</p>
+      <p>Best regards,<br/>EurosHub</p>
     </div>
   `;
 }
